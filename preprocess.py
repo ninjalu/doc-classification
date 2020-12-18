@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from requests import get
 import pandas as pd
+import numpy as np
 from time import sleep
 from typing import List, Dict, Tuple, Union
 import os
@@ -117,20 +118,53 @@ def tokenize_ft_extraction(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
     df[col_name] = df[col_name].str.lower().str.strip()
     nlp = en_core_web_lg.load()
     nlp.add_pipe(merge_entities)
-    df[col_name] = df[col_name].apply(regex_clean)
+    df[col_name] = df[col_name].apply(_regex_clean)
     lemmatized_text = []
+    df['ents_rep'] = None
+    df['vocab'] = None
+    df['ppo_rep'] = None
+    df['no_ents_text'] = None
     for idx, text in enumerate(df[col_name]):
         doc = nlp(text)
         tokens = []
+        ents = []
+        texts = []
+        ppo = []
+        # places = []
+        # persons = []
+        # orgs = []
         for token in doc:
             if token.lemma_=='-PRON-':
                 tokens.append(token.text)
             elif not token.ent_type_:
+                texts.append(token.text)
                 tokens.append(token.lemma_)
             else:
                 tokens.append(token.ent_type_)
+                ents.append(token.text.lower())
+                if token.ent_type_ in [*PERSON, *PLACE, *ORG]:
+                    ppo.append(token.text.lower())
         lemmatized_text.append(tokens)
-    df[col_name] = lemmatized_text
+        df['ents_rep'][idx] = len(ents)/len(set(ents))
+        df['vocab'][idx] = len(set(texts))/len(texts)
+        df['ppo_rep'][idx] = len(ppo)/(len(set(ppo)) + np.exp(float('-inf')))
+        df['no_ents_text'][idx] = ' '.join(texts)
+
+    df['lem_text'] = lemmatized_text
+    df = _feature_extraction(df, 'lem_text')
+    return df
+
+def _feature_extraction(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
+    """
+    This function takes in tokenized dataframe and text column name and extracts feaures.
+
+    Args:
+        df (pd.DataFrame): tokenized dataframe
+        col_name (str): name of the column containing texts
+
+    Returns:
+        pd.DataFrame: tokenized datafram with hand crafted features.
+    """
     df['len'] = df[col_name].apply(lambda x: len(x))
     df['org_count'] = df[col_name].apply(lambda x: sum(x.count(org)/len(x) for org in ORG))
     df['place_count'] = df[col_name].apply(lambda x: sum(x.count(place)/len(x) for place in PLACE))
@@ -138,9 +172,10 @@ def tokenize_ft_extraction(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
     df['person_count'] = df[col_name].apply(lambda x: x.count('PERSON')/len(x))
     df['num_count'] = df[col_name].apply(lambda x: sum(x.count(num)/len(x) for num in NUM))
     df['ne_count'] = df['org_count'] + df['person_count'] + df['place_count']
+
     return df
 
-def regex_clean(text: str) -> str:
+def _regex_clean(text: str) -> str:
     """
     This function strips emails and urls from a given string
 
