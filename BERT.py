@@ -3,7 +3,7 @@ from transformers import BertTokenizer, BertForSequenceClassification, AdamW
 from sklearn.model_selection import train_test_split
 from prep_bert import BertEncoder, build_dataloaders
 from fine_tune_bert import fine_tune_bert
-import pickle
+import pickle5 as pickle
 
 if __name__ == '__main__':
     with open('data.pickle', 'rb') as handle:
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     )
 
     optimizer = AdamW(model.parameters(), lr=2e-5, eps=1e-8)
-    
+
     if torch.cuda.is_available():
         device = torch.device('cuda')
     else: device = torch.device('cpu')
