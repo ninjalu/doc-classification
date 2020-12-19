@@ -29,23 +29,21 @@ if __name__ == '__main__':
         train_ratio=0.8
     )
 
-    model = BertForSequenceClassification.from_pretrained(
+    bert_model = BertForSequenceClassification.from_pretrained(
         'bert-base-cased',
         output_attentions=False,
         output_hidden_states=False,
         num_labels = 4
     )
 
-    optimizer = AdamW(model.parameters(), lr=2e-5, eps=1e-8)
+    optimizer = AdamW(bert_model.parameters(), lr=2e-5, eps=1e-8)
 
-    if torch.cuda.is_available():
-        device = torch.device('cuda')
-    else: device = torch.device('cpu')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     trained_model, stats = fine_tune_bert(
         train_dataloader=train_dataloader, 
         valid_dataloader=val_dataloader, 
-        model=model,
+        model=bert_model,
         optimizer=optimizer,
         save_model_path='model/trained_model.pt',
         save_stats_dict_path='logs/statistics.json',

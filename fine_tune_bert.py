@@ -3,7 +3,7 @@ from typing import Optional, Tuple, Union, Dict
 from torch.utils.data import DataLoader
 import json
 import torch
-import tqdm
+from tqdm import tqdm
 
 def fine_tune_bert(
     train_dataloader: DataLoader,
@@ -44,21 +44,22 @@ def fine_tune_bert(
     model = model.to(device)
     training_stats = {}
     model.train()
-    for epoch in range(epochs):
+    for epoch in tqdm(range(epochs)):
         cumulative_train_loss_per_epoch = 0
         for batch in train_dataloader:
             input_ids, attention_masks, labels = batch
             input_ids = input_ids.to(device)
-            # token_type_ids = token_type_ids.to(device)
             attention_masks = attention_masks.to(device)
             labels = labels.to(device)
             model.zero_grad()
-            loss, logits = model(
+            output = model(
                 input_ids=input_ids,
+                token_type_ids=None,
                 attention_mask=attention_masks,
-                # token_type_ids=token_type_ids,
                 labels=labels
             )
+            loss = output[0]
+            logits = output[1]
             cumulative_train_loss_per_epoch += loss.item()
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
@@ -73,18 +74,19 @@ def fine_tune_bert(
         cumulative_eval_loss_per_epoch = 0
         
         for batch in valid_dataloader:
-            input_ids, token_type_ids, attention_masks, labels = batch
+            input_ids, attention_masks, labels = batch
             input_ids = input_ids.to(device)
-            token_type_ids = token_type_ids.to(device)
             attention_masks = attention_masks.to(device)
             labels = labels.to(device)
             with torch.no_grad():
-                loss, logits = model(
+                output = model(
                     input_ids=input_ids,
-                    token_type_ids=token_type_ids,
+                    token_type_ids=None,
                     attention_mask=attention_masks,
                     labels=labels
                 )
+                loss = output[0]
+                logits = output[1]
                 cumulative_eval_loss_per_epoch += loss.item()
 
                 pred_label = torch.argmax(logits, dim=1)
