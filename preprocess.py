@@ -96,6 +96,12 @@ ORG = ['NORP', 'ORG']
 TIME = ['DATE', 'TIME']
 NUM = ['PERCENT', 'MONEY', 'QUANTITY', 'ORDINAL', 'CARDINAL']
 
+PAST = ['VBD']
+PRESENT = ['VBP', 'VBZ']
+MODAL = ['MD']
+AD = ['ADJ', 'ADV']
+PROB = ['definitely', 'certainly', 'clearly', 'obviously', 'possibly', 'perhaps', 'probably', 'maybe', 'possible', 'definite', 'certain', 'obvious', 'likely']
+
 def tokenize_ft_extraction(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
     """
     This function takes in a dataframe and column name for text
@@ -124,31 +130,60 @@ def tokenize_ft_extraction(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
     df['vocab'] = None
     df['ppo_rep'] = None
     df['no_ents_text'] = None
+    df['verb_present'] = None
+    df['verb_past'] = None
+    df['verb'] = None
+    df['modal'] = None
+    df['ad'] = None
+    df['prob'] = None
     for idx, text in enumerate(df[col_name]):
         doc = nlp(text)
         tokens = []
         ents = []
-        texts = []
         ppo = []
-        # places = []
-        # persons = []
-        # orgs = []
+        verb_present = []
+        verb_past = []
+        verb = []
+        modal = []
+        ad = []
+        prob = []
         for token in doc:
-            if token.lemma_=='-PRON-':
+            if token.is_stop:
+                continue # drop stop words
+            elif token.lemma_=='-PRON-': # replace PRON with original text
                 tokens.append(token.text)
             elif not token.ent_type_:
-                texts.append(token.text)
-                tokens.append(token.lemma_)
+                tokens.append(token.lemma_) # use lemmatized tokens for non NE tokens
+                if token.text in PROB:
+                    prob.append(token.text)
+                elif token.tag_ in PAST:
+                    verb_past.append(token.lemma_)
+                    verb.append(token.lemma_)
+                elif token.tag_ in PRESENT:
+                    verb_present.append(token.lemma_)
+                    verb.append(token.lemma_)
+                elif token.tag_ in ['VB', 'VBG', 'VBN']:
+                    verb.append(token.lemma_)
+                elif token.tag_ in MODAL:
+                    modal.append(token.text)
+                elif token.pos_ in AD:
+                    ad.append(token.text)
             else:
                 tokens.append(token.ent_type_)
-                ents.append(token.text.lower())
+                ents.append(token.text.lower()) # keep NE token for calculating repeated NE
                 if token.ent_type_ in [*PERSON, *PLACE, *ORG]:
-                    ppo.append(token.text.lower())
+                    ppo.append(token.text.lower()) # keep PPO person, place, organisation NE for calculating repeated NE
         lemmatized_text.append(tokens)
-        df['ents_rep'][idx] = len(ents)/len(set(ents))
-        df['vocab'][idx] = len(set(texts))/len(texts)
-        df['ppo_rep'][idx] = len(ppo)/(len(set(ppo)) + np.exp(float('-inf')))
-        df['no_ents_text'][idx] = ' '.join(texts)
+        df['ents_rep'][idx] = len(ents)/len(set(ents)) # repeat ratio of NE
+        df['vocab'][idx] = len(set(tokens))/len(tokens) # normalised vocabulary size
+        df['ppo_rep'][idx] = len(ppo)/(len(set(ppo)) + np.exp(float('-inf'))) # repeat retio of PPO
+        df['no_ents_text'][idx] = ' '.join(tokens)
+        df['verb_present'][idx] = len(verb_present)/len(tokens) # normalised present tense verb count
+        df['verb_past'][idx] = len(verb_past)/len(tokens) # normalised past tense verb count
+        df['verb'][idx] = len(verb)/len(tokens) # normalised verb count
+        df['modal'][idx] = len(modal)/len(tokens) # normalised modal count
+        df['ad'][idx] = len(ad)/len(tokens) # normalised adjective/adverb count
+        df['prob'][idx] = len(prob)/len(tokens) # normalised count of advs and adjs of probability
 
     df['lem_text'] = lemmatized_text
     df = _feature_extraction(df, 'lem_text')
