@@ -73,3 +73,24 @@ def build_dataloaders(
     valid_dataloader = DataLoader(valid_dataset, batch_size=batch_size[1], shuffle=True)
 
     return train_dataloader, valid_dataloader
+
+def build_test_dataloaders(
+    input_ids: Tensor,
+    attention_masks: Tensor, 
+    labels: Tensor
+) -> DataLoader:
+    """
+    This function takes in tokenized copus, and returns train and validation dataloaders.
+
+    Args:
+        input_ids[Tensor]: input ids
+        attention_masks[Tensor]: attention masks
+
+    Returns:
+        DataLoader: test dataloader
+    """
+
+    dataset = TensorDataset(input_ids, attention_masks, labels)
+    test_dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
+
+    return test_dataloader

@@ -10,6 +10,7 @@ if __name__ == '__main__':
         df = pickle.load(handle)
     texts = df['text'].tolist()
     label = df['class_id'].apply(lambda x: int(x))
+    texts, _, label, _ = train_test_split(texts, label, test_size=0.2, stratify=label, random_state=2020)
 
     dataset = BertEncoder(
         tokenizer=BertTokenizer.from_pretrained(
