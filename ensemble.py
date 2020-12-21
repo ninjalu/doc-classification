@@ -6,6 +6,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from typing import Dict, List, Tuple, Optional, Union
 from transformers import PreTrainedTokenizerBase
 from sklearn.model_selection import train_test_split
+from scipy.special import softmax
 
 class NLPEnsemble():
     """
@@ -25,11 +26,11 @@ class NLPEnsemble():
         self.t_nlp_pred = self.traditional_nlp.predict_proba(X_test)
         _, self.nn_nlp_pred = bert_predict(self.nn_nlp, test_dataloader)
         print(self.t_nlp_pred)
-        print(self.t_nlp_pred.shape)
+        # print(self.t_nlp_pred.shape)
         print(self.nn_nlp_pred)
-        print(self.nn_nlp_pred.shape)
+        # print(self.nn_nlp_pred.shape)
         self.pred = self.ratio*self.t_nlp_pred + (1-self.ratio)*self.nn_nlp_pred
-        return np.argmax(self.pred)
+        return np.argmax(self.pred, axis=1)
 
 def bert_predict(model, test_dataloader):
     pred = []
@@ -47,6 +48,5 @@ def bert_predict(model, test_dataloader):
             logits = output[1]
         pred_logits.append(logits.numpy().flatten())
         pred.append(torch.argmax(logits, dim=1).numpy())
-    pred_logits = np.array(pred_logits)
-    print(pred_logits)    
-    return pred, pred_logits
+    pred_proba = softmax(np.array(pred_logits), axis=1)
+    return pred, pred_proba
