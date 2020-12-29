@@ -1,8 +1,8 @@
 import torch
-from transformers import BertTokenizer, BertForMaskedLM, AdamW
+from transformers import RobertaTokenizer, RobertaForSequenceClassification, AdamW
 from sklearn.model_selection import train_test_split
 from prep_bert import BertEncoder, build_dataloaders
-from fine_tune_bert_sc import fine_tune_bert
+from fine_tune_bert import fine_tune_bert
 import pickle5 as pickle
 
 if __name__ == '__main__':
@@ -13,8 +13,8 @@ if __name__ == '__main__':
     texts, _, label, _ = train_test_split(texts, label, test_size=0.2, stratify=label, random_state=2020)
 
     dataset = BertEncoder(
-        tokenizer=BertTokenizer.from_pretrained(
-            'bert-base-cased', 
+        tokenizer=RobertaTokenizer.from_pretrained(
+            'roberta-base', 
             do_lower_case=False), 
         input_data=texts
     )
@@ -30,10 +30,11 @@ if __name__ == '__main__':
         train_ratio=0.8
     )
 
-    bert_model = BertForMaskedLM.from_pretrained(
-        'bert-base-cased',
+    bert_model = RobertaForSequenceClassification.from_pretrained(
+        'roberta-base',
         output_attentions=False,
-        output_hidden_states=False
+        output_hidden_states=False,
+        num_labels = 4
     )
 
     optimizer = AdamW(bert_model.parameters(), lr=2e-5, eps=1e-8)
@@ -45,7 +46,7 @@ if __name__ == '__main__':
         valid_dataloader=val_dataloader, 
         model=bert_model,
         optimizer=optimizer,
-        save_model_path='model/trained_bert_mlm.pt',
-        save_stats_dict_path='logs/bert_mlm_statistics.json',
+        save_model_path='model/trained_roberta_model.pt',
+        save_stats_dict_path='logs/roberta_statistics.json',
         device = device
     )
