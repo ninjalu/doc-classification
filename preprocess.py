@@ -174,16 +174,19 @@ def tokenize_ft_extraction(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
                 if token.ent_type_ in [*PERSON, *PLACE, *ORG]:
                     ppo.append(token.text.lower()) # keep PPO person, place, organisation NE for calculating repeated NE
         lemmatized_text.append(tokens)
-        df['ents_rep'][idx] = len(ents)/len(set(ents)) # repeat ratio of NE
-        df['vocab'][idx] = len(set(tokens))/len(tokens) # normalised vocabulary size
-        df['ppo_rep'][idx] = len(ppo)/(len(set(ppo)) + np.exp(float('-inf'))) # repeat retio of PPO
-        df['no_ents_text'][idx] = ' '.join(tokens)
-        df['verb_present'][idx] = len(verb_present)/len(tokens) # normalised present tense verb count
-        df['verb_past'][idx] = len(verb_past)/len(tokens) # normalised past tense verb count
-        df['verb'][idx] = len(verb)/len(tokens) # normalised verb count
-        df['modal'][idx] = len(modal)/len(tokens) # normalised modal count
-        df['ad'][idx] = len(ad)/len(tokens) # normalised adjective/adverb count
-        df['prob'][idx] = len(prob)/len(tokens) # normalised count of advs and adjs of probability
+        df.loc[idx, 'ents_rep'] = len(ents)/len(set(ents)) # repeat ratio of NE
+        df.loc[idx, 'vocab'] = len(set(tokens))/len(tokens) # normalised vocabulary size
+        if len(ppo)!=0:
+            df.loc[idx, 'ppo_rep'] = len(ppo)/(len(set(ppo))) # repeat retio of PPO
+        else:
+            df.loc[idx, 'ppo_rep'] = 0
+        df.loc[idx, 'no_ents_text'] = ' '.join(tokens)
+        df.loc[idx, 'verb_present'] = len(verb_present)/len(tokens) # normalised present tense verb count
+        df.loc[idx, 'verb_past'] = len(verb_past)/len(tokens) # normalised past tense verb count
+        df.loc[idx, 'verb'] = len(verb)/len(tokens) # normalised verb count
+        df.loc[idx, 'modal'] = len(modal)/len(tokens) # normalised modal count
+        df.loc[idx, 'ad'] = len(ad)/len(tokens) # normalised adjective/adverb count
+        df.loc[idx, 'prob'] = len(prob)/len(tokens) # normalised count of advs and adjs of probability
 
     df['lem_text'] = lemmatized_text
     df = _feature_extraction(df, 'lem_text')
