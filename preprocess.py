@@ -10,6 +10,7 @@ import spacy
 from spacy.pipeline import merge_entities
 import en_core_web_lg
 import re
+import nlpaug.argmenter.word as naw
 
 
 def url_to_file(df: pd.DataFrame, url_col: str, dir_: str) -> List[Tuple[int, str]]:
@@ -228,3 +229,21 @@ def _regex_clean(text: str) -> str:
     text = re.sub(r'\S*@\S*\s?', '', text)
     return text
 
+def back_translation(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
+    """
+    This function takes in a dataframe, backtranslate the text column and append to the original dataframe with labels 
+
+    Args:
+        df (pd.DataFrame): Dataframe containing text and labels
+        col_name (str): Name of the text column
+
+    Returns:
+        pd.DataFrame: Dataframe containing original text and backtranslated text and labels
+    """
+
+    MODELS = {
+        'GERMAN': ('transformer.wmt19.en-de', 'transformer.wmt19.de-en'),
+        'RUSSIAN': ('transformer.wmt19.en-ru', 'transformer.wmt19.ru-en')
+    }
+
+    back_translation_aug = 
