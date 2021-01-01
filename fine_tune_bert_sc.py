@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader
 import json
 import torch
 from tqdm import tqdm
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 def fine_tune_bert(
     train_dataloader: DataLoader,
@@ -67,7 +68,8 @@ def fine_tune_bert(
             lr_scheduler.step()
         
         average_training_loss_per_batch = cumulative_train_loss_per_epoch / len(train_dataloader)
-        
+        print(average_training_loss_per_batch)
+
         pred_labels = torch.tensor([], dtype=torch.long, device=device)  # initialising tensors for storing results
         true_labels = torch.tensor([], dtype=torch.long, device=device)  # initialising tensors for storing results
         
@@ -93,7 +95,8 @@ def fine_tune_bert(
                 pred_labels = torch.cat((pred_labels, pred_label))
                 true_labels = torch.cat((true_labels, labels))
         
-        average_validation_accuracy_per_epoch = int(sum(pred_labels==true_labels))/len(valid_dataloader)
+        average_validation_accuracy_per_epoch = int(sum((pred_labels==true_labels)))/len(pred_labels)
+        print(average_validation_accuracy_per_epoch)
         average_val_loss_per_batch = cumulative_eval_loss_per_epoch/len(valid_dataloader)
 
         training_stats[f"epoch_{epoch + 1}"] = {
@@ -109,3 +112,15 @@ def fine_tune_bert(
                 json.dump(training_stats, file)
 
         return model, training_stats
+
+def compute_metrics(pred):
+    labels = pred.label_ids
+    preds = pred.predictions.argmax(-1)
+    precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average='macro')
+    acc = accuracy_score(labels, preds)
+    return {
+        'accuracy': acc,
+        'f1': f1,
+        'precision': precision,
+        'recall': recall
+    }

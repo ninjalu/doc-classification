@@ -1,52 +1,68 @@
 import torch
-from transformers import RobertaTokenizer, RobertaForSequenceClassification, AdamW
+from transformers import RobertaTokenizer, RobertaForSequenceClassification, Trainer, TrainingArguments
 from sklearn.model_selection import train_test_split
-from prep_bert import BertEncoder, build_dataloaders
-from fine_tune_bert import fine_tune_bert
+from prep_bert import *
+from fine_tune_bert_sc import *
 import pickle5 as pickle
+import pandas as pd
+from torch.utils.data import TensorDataset
 
 if __name__ == '__main__':
     with open('data.pickle', 'rb') as handle:
         df = pickle.load(handle)
     texts = df['text'].tolist()
-    label = df['class_id'].apply(lambda x: int(x))
-    texts, _, label, _ = train_test_split(texts, label, test_size=0.2, stratify=label, random_state=2020)
+    labels = df['class_id'].apply(lambda x: int(x))
+    train_texts, test_texts, train_labels, test_labels = train_test_split(texts, labels, test_size=0.2, random_state=2020)
 
-    dataset = BertEncoder(
-        tokenizer=RobertaTokenizer.from_pretrained(
-            'roberta-base', 
-            do_lower_case=False), 
-        input_data=texts
+    train_dataset = BertEncoder(
+        tokenizer=RobertaTokenizer.from_pretrained('roberta-base'), 
+        input_data=train_texts
+    )
+    test_dataset = BertEncoder(
+        tokenizer=RobertaTokenizer.from_pretrained('roberta-base'), 
+        input_data=test_texts
     )
 
-    data = dataset.tokenize(max_len=510)
-    input_ids, attention_masks = data
-    label = torch.Tensor(label.to_list()).long()
-    train_dataloader, val_dataloader = build_dataloaders(
-        input_ids=input_ids,
-        attention_masks=attention_masks,
-        labels=label,
-        batch_size=(16, 4),
-        train_ratio=0.8
-    )
+    train_data = train_dataset.tokenize(max_len=510)
+    test_data = test_dataset.tokenize(max_len=510)
 
-    bert_model = RobertaForSequenceClassification.from_pretrained(
+    train_input_ids, train_attention_masks = train_data
+    test_input_ids, test_attention_masks = test_data
+
+    train_labels = torch.Tensor(train_labels.to_list()).long()
+    test_labels = torch.Tensor(test_labels.to_list()).long()
+
+    train_dataset = TensorDataset(train_input_ids, train_attention_masks, train_labels)
+    test_dataset = TensorDataset(test_input_ids, test_attention_masks, test_labels)
+
+    model = RobertaForSequenceClassification.from_pretrained(
         'roberta-base',
         output_attentions=False,
         output_hidden_states=False,
         num_labels = 4
     )
 
-    optimizer = AdamW(bert_model.parameters(), lr=2e-5, eps=1e-8)
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-    trained_model, stats = fine_tune_bert(
-        train_dataloader=train_dataloader, 
-        valid_dataloader=val_dataloader, 
-        model=bert_model,
-        optimizer=optimizer,
-        save_model_path='model/trained_roberta_model.pt',
-        save_stats_dict_path='logs/roberta_statistics.json',
-        device = device
+    training_args = TrainingArguments(
+        output_dir='./results',
+        num_train_epochs=8,
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=16,
+        warmup_steps=10,
+        weight_decay=0.01,
+        logging_dir='./logs',
+        load_best_model_at_end=True
     )
+
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset,
+        eval_dataset=test_dataset,
+        compute_metrics=compute_metrics,
+        data_collator=dummy_data_collector
+    )
+
+    trainer.train()
+    trainer.save_model('./model')
+    trainer.evaluate()
+    

@@ -94,3 +94,11 @@ def build_test_dataloaders(
     test_dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
     return test_dataloader
+
+def dummy_data_collector(features):
+    batch = {}
+    batch['input_ids'] = torch.stack([f[0] for f in features])
+    batch['attention_mask'] = torch.stack([f[1] for f in features])
+    batch['labels'] = torch.stack([f[2] for f in features])
+    
+    return batch

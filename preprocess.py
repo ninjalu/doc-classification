@@ -246,4 +246,18 @@ def back_translation(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
         'RUSSIAN': ('transformer.wmt19.en-ru', 'transformer.wmt19.ru-en')
     }
 
-    back_translation_aug = 
+    for _, model in MODELS.items():
+        back_translation_aug = naw.BackTranslationAug(
+            from_model_name=model[0],
+            to_model_name=model[1]
+        )
+        translation = df['col_name'].apply(back_translation_aug.augment)
+        labels = df['class_id']
+        trans_df = pd.DataFrame({
+            'text': translation,
+            'class_id': labels
+        })
+
+        df = pd.concat([df, trans_df], axis=0, ignore_index=True)
+    
+    return df
