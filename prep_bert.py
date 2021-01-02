@@ -4,6 +4,7 @@ from torch.utils.data import TensorDataset, random_split, DataLoader, RandomSamp
 from typing import Dict, List, Tuple, Optional, Union
 from transformers import PreTrainedTokenizerBase
 from sklearn.model_selection import train_test_split
+import pandas as pd
 
 class BertEncoder():
     """
@@ -102,3 +103,26 @@ def dummy_data_collector(features):
     batch['labels'] = torch.stack([f[2] for f in features])
     
     return batch
+
+def _split_sequence(text, max_len):
+    words = text.split()
+    lines = []
+    current = []
+    for word in words:
+        if len(current) >= max_len:
+            lines.append(' '.join(current))
+            current = [word]
+        else:
+            current.append(word+' ')
+    if len(current) >= 300:
+        lines.append(' '.join(current))
+    return lines
+
+def split_training_data(df, max_len):
+    split_texts_tuples = []
+    for row in df.iterrows():
+        split_texts = _split_sequence(row[1]['text'], max_len)
+        for text in split_texts:
+            split_texts_tuples.append((text, row[1]['class_id']))
+    df = pd.DataFrame(split_texts_tuples, columns=['text', 'label'])
+    return df
