@@ -10,7 +10,6 @@ import spacy
 from spacy.pipeline import merge_entities
 import en_core_web_lg
 import re
-import nlpaug.argmenter.word as naw
 
 
 def url_to_file(df: pd.DataFrame, url_col: str, dir_: str) -> List[Tuple[int, str]]:
