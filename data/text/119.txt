@@ -1,0 +1,21 @@
+ {{region_detail.text}} {{person_detail.text}} {{organization_detail.text}} {{series.description | limitTo:140}} 
+					authors
+				 
+Marie Donovan
+ 
+						dated
+					 
+						{{1519852440 | milliToDateShort}}
+					 
+						latest edition
+					 
+
+							{{1565188020 | milliToDateShort}}
+						
+ 
+ Authors 
+Marie Donovan
+ Latest Edition 
+			{{1519852440 | milliToDateShort}}
+		 By Marie Donovan Ex-president Mahmoud Ahmadinejad is giving the Iranian regime the last thing it needs right now: another internal security problem. The regime is still reeling from the widespread protests in late December-early January and has had its hands full responding to subsequent demonstrations, such as the violent Gonabadi Dervish protests in Tehran in mid-February. Ahmadinejad’s efforts to leverage popular discontent and erode the regime’s legitimacy could pose a real threat to Iran’s internal security. Ahmadinejad’s high public profile and reckless attitude make him a unique problem for the regime. Ahmadinejad has been attempting to undermine Supreme Leader Ayatollah Ali Khamenei’s authority since his falling out with the Supreme Leader towards the end of his second term (2009-2013). He has disregarded the regime’s repeated public warnings. For example, he disobeyed Khamenei’s direct order not to run in the May 2017 presidential elections. The regime’s efforts to restrain Ahmadinejad have been unsuccessful. The regime sentenced Ahmadinejad’s first vice president and felon Hamid Baghaei in December 2017, likely as a warning to the ex-president. Ahmadinejad responded by increasing his attacks against regime officials, especially Judiciary Head Ayatollah Sadegh Amoli Larijani. Some have suggested that Ahmadinejad was trying to damage Larijani’s chances at being considered a serious successor to Khamenei.   More recently, Ahmadinejad has used the recent protests to stir up popular disenchantment with the regime. His supporters requested a protest permit they knew the Interior Ministry would not approve, and Ahmadinejad even publicly criticized the Judiciary on the sensitive issue of the alleged suicides of detained protesters. The ex-president may hope to convert popular discontent into political capital for his supporters who attempt to run in the 2020 parliamentary elections or even 2021 presidential elections. More drastically, Ahmadinejad’s stoking of popular disenchantment – intentionally or otherwise – could ignite further public protests. Ahmadinejad’s historic base of populists and rural conservatives track closely with the makeup of many of the crowds who participated in the December-January protests, although demonstrators did not indicate any explicit support for him. Khamenei and the regime have likely avoided more drastic measures, such as prosecution against Ahmadinejad, for fear of mobilizing the base that the ex-president maintains. Instead, Khamenei will likely continue issuing public warnings to Ahmadinejad and imprisoning his corrupt cronies. Thus far, Ahmadinejad does not appear to maintain enough traction with his historic base to mobilize many people to the streets. If Ahmadinejad is able to marshal sufficient numbers, however, the regime may be forced to risk the potentially destabilizing effects of a harsher crackdown on him. Stay tuned.      
+					Sign up to recieve updates on the Threat Update
